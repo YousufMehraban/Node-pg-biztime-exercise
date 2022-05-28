@@ -21,7 +21,8 @@ beforeEach( async()=> {
                                     RETURNING id, comp_code, amt, paid, add_date, paid_date`);
 
     let data = comp_result.rows[0];
-    testCompany = {"company": {"code": data.code, "name": data.name, "description": data.description, "invoices": invoice_result.rows}}
+    testCompany = {"company": {"code": data.code, "name": data.name, 
+                    "description": data.description, "invoices": invoice_result.rows}}
 
     const invoice_data = invoice_result.rows[0]
     const invoice = {
@@ -64,7 +65,7 @@ describe('GET /companies', ()=>{
 })
 
 
-describe('GET /companies/id', ()=>{
+describe('GET /companies/:code', ()=>{
     test('testing a company data', async()=>{
         const result = await supertest(app).get('/companies/ibm')
         expect(result.statusCode).toBe(200)
@@ -79,9 +80,10 @@ describe('GET /companies/id', ()=>{
 
 describe('POST /companies', ()=>{
     test('creating a company data', async()=>{
-        const result = await supertest(app).get('/companies')
+        const result = await supertest(app).post('/companies').send({code:'apple', name:'APPLE', 
+                                                                    description: 'IOS OS creater'})
         expect(result.statusCode).toBe(200)
-        expect(result.body).toEqual(testCompanies)
+        expect(result.body).toEqual({company: {code:'apple', name:'APPLE', description: 'IOS OS creater'}})
     })
     test('testing 404', async()=>{
         const result = await supertest(app).get('/wrong')
@@ -90,27 +92,24 @@ describe('POST /companies', ()=>{
 })
 
 
-describe('PATCH /companies/id', ()=>{
+describe('PATCH /companies/:code', ()=>{
     test('updating a company data', async()=>{
-        const result = await supertest(app).get('/companies/ibm')
+        const result = await supertest(app).patch('/companies/ibm').send({code:'ibm', name:'IBM', 
+                                                                    description: 'Hardware and Software creater'})
         expect(result.statusCode).toBe(200)
-        expect(JSON.stringify(result.body)).toEqual(JSON.stringify(testCompany))
+        expect(result.body).toEqual({company: {code:'ibm', name:'IBM', description: 'Hardware and Software creater'}})
     })
     test('testing 404', async()=>{
-        const result = await supertest(app).get('/companies/wrong')
+        const result = await supertest(app).patch('/companies/wrong')
         expect(result.statusCode).toBe(404)
     })
 })
 
-describe('DELETE /companies/id', ()=>{
+describe('DELETE /companies/:code', ()=>{
     test('deleting a company data', async()=>{
-        const result = await supertest(app).get('/companies/ibm')
+        const result = await supertest(app).delete(`/companies/ibm`)
         expect(result.statusCode).toBe(200)
-        expect(JSON.stringify(result.body)).toEqual(JSON.stringify(testCompany))
-    })
-    test('testing 404', async()=>{
-        const result = await supertest(app).get('/wrong')
-        expect(result.statusCode).toBe(404)
+        expect(result.body).toEqual({status: "Deleted"})
     })
 })
 
@@ -133,17 +132,45 @@ describe('GET /invoices/id', ()=>{
 })
 
 describe('POST /invoices', ()=>{
-    test('creating invoice data', async()=>{
-        const result = await supertest(app).post('/invoices').send({comp_code:'apple', amt: 1000, paid:true, add_date:'2022-05-28', paid_date:'2022-05-28'})
+    test('creating an invoice data', async()=>{
+        const result = await supertest(app).post('/invoices').send({comp_code:'ibm', amt:1000, paid: true, 
+                                                                    add_date: '2022-05-28T07:00:00.000Z', paid_date: '2022-05-28T07:00:00.000Z'})
         expect(result.statusCode).toBe(201)
-        // console.log(result.status)
-        // console.log(result.body)
-        // console.log(testInvoiceData)
-        expect(result.body).toEqual({invoice: testInvoiceData})
+        expect(result.body).toEqual({invoice: {id: expect.any(Number), comp_code:'ibm', amt:1000, paid: true, 
+                                                add_date: '2022-05-28T07:00:00.000Z', paid_date: '2022-05-28T07:00:00.000Z'}})
     })
     test('testing 404', async()=>{
         const result = await supertest(app).post('/wrong')
         expect(result.statusCode).toBe(404)
     })
 })
+
+describe('PATCH /invoices/id', ()=>{
+    test('creating an invoice data', async()=>{
+        const result = await supertest(app).patch(`/invoices/${testInvoice.invoice.id}`).send({
+            comp_code:'ibm', amt:10, paid: true, 
+            add_date: '2022-05-28T07:00:00.000Z', 
+            paid_date: '2022-05-28T07:00:00.000Z'})
+
+        expect(result.statusCode).toBe(200)
+        expect(result.body).toEqual({invoice: {id: expect.any(Number), comp_code:'ibm', amt:10, paid: true, 
+                                                add_date: '2022-05-28T07:00:00.000Z', 
+                                                paid_date: '2022-05-28T07:00:00.000Z'}})
+    })
+    test('testing 404', async()=>{
+        const result = await supertest(app).patch('/invoices/0')
+        expect(result.statusCode).toBe(404)
+    })
+})
+
+describe('DELETE /invoices/id', ()=>{
+    test('Deleting an invoice data', async()=>{
+        const result = await supertest(app).delete(`/invoices/${testInvoice.invoice.id}`)
+        expect(result.statusCode).toBe(200)
+        expect(result.body).toEqual({status: "Deleted"})
+    })
+})
+
+
+
 
