@@ -31,7 +31,7 @@ router.get('/:code', async(req, res, next)=>{
         }
         let comp_data = comp_result.rows[0]
         let data = {'company': {'code': comp_data.code, 'name': comp_data.name, 'description': comp_data.description, 
-                                'invoices': invoice_result.rows}, 'industries': industry_result.rows}
+                                'invoices': invoice_result.rows, 'industries': industry_result.rows}}
 
         return res.json(data)
     } catch(e){

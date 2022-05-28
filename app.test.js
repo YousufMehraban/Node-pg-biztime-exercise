@@ -19,10 +19,11 @@ beforeEach( async()=> {
     const invoice_result = await db.query(`INSERT INTO invoices (comp_code, amt, paid, add_date, paid_date) 
                                     VALUES ('ibm', 500, false, '2022-02-26', null) 
                                     RETURNING id, comp_code, amt, paid, add_date, paid_date`);
-
+    
+   
     let data = comp_result.rows[0];
     testCompany = {"company": {"code": data.code, "name": data.name, 
-                    "description": data.description, "invoices": invoice_result.rows}}
+                    "description": data.description, "invoices": invoice_result.rows}};
 
     const invoice_data = invoice_result.rows[0]
     const invoice = {
@@ -54,7 +55,7 @@ afterAll(async()=>{
 
 describe('GET /companies', ()=>{
     test('testing companies data', async()=>{
-        const result = await supertest(app).get('/companies')
+        const result = await supertest(app).get(`/companies`)
         expect(result.statusCode).toBe(200)
         expect(result.body).toEqual(testCompanies)
     })
@@ -66,13 +67,14 @@ describe('GET /companies', ()=>{
 
 
 describe('GET /companies/:code', ()=>{
-    test('testing a company data', async()=>{
-        const result = await supertest(app).get('/companies/ibm')
+    test('testing a company data', async ()=>{
+        const result = await supertest(app).get(`/companies/ibm`)
         expect(result.statusCode).toBe(200)
-        expect(JSON.stringify(result.body)).toEqual(JSON.stringify(testCompany))
+        console.log('res ----->', result.body)
+        console.log('comp ----->', testCompany)
     })
     test('testing 404', async()=>{
-        const result = await supertest(app).get('/companies/wrong')
+        const result = await supertest(app).get(`/companies/0`)
         expect(result.statusCode).toBe(404)
     })
 })
