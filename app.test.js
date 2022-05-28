@@ -118,10 +118,11 @@ describe('DELETE /companies/id', ()=>{
 
 
 describe('GET /invoices/id', ()=>{
-    test('testing a invoice data', async()=>{
+    test('testing an invoice data', async()=>{
         const result = await supertest(app).get('/invoices/1')
         expect(result.statusCode).toBe(200)
-        // console.log(result.body)
+        console.log(result.status)
+        console.log(result.body)
         // console.log(testCompany)
         expect(result.body).toEqual(testInvoice)
     })
