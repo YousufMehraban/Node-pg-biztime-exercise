@@ -16,7 +16,7 @@ beforeEach( async()=> {
     
     const invoice_result = await db.query(`INSERT INTO invoices (comp_code, amt, paid, add_date, paid_date) 
                                     VALUES ('ibm', 500, false, '2022-02-26', null) 
-                                    RETURNING comp_code, amt, paid, add_date, paid_date`);
+                                    RETURNING id, comp_code, amt, paid, add_date, paid_date`);
 
     let data = comp_result.rows[0];
     testCompany = {"company": {"code": data.code, "name": data.name, "description": data.description, "invoices": invoice_result.rows}}
@@ -48,12 +48,53 @@ describe('GET /companies/id', ()=>{
     test('testing a company data', async()=>{
         const result = await supertest(app).get('/companies/ibm')
         expect(result.statusCode).toBe(200)
-        console.log('res ---->', result.body)
-        console.log('com ---->', testCompany)
-        // expect(result.body).toEqual(testCompany)
+        // console.log(result.body)
+        // console.log(testCompany)
+        expect(JSON.stringify(result.body)).toEqual(JSON.stringify(testCompany))
     })
     test('testing 404', async()=>{
         const result = await supertest(app).get('/companies/wrong')
         expect(result.statusCode).toBe(404)
     })
 })
+
+
+describe('POST /companies', ()=>{
+    test('testing a company data', async()=>{
+        const result = await supertest(app).get('/companies')
+        expect(result.statusCode).toBe(200)
+        expect(result.body).toEqual(testCompanies)
+    })
+    test('testing 404', async()=>{
+        const result = await supertest(app).get('/wrong')
+        expect(result.statusCode).toBe(404)
+    })
+})
+
+
+describe('PATCH /companies/id', ()=>{
+    test('testing a company data', async()=>{
+        const result = await supertest(app).get('/companies/ibm')
+        expect(result.statusCode).toBe(200)
+        expect(JSON.stringify(result.body)).toEqual(JSON.stringify(testCompany))
+    })
+    test('testing 404', async()=>{
+        const result = await supertest(app).get('/companies/wrong')
+        expect(result.statusCode).toBe(404)
+    })
+})
+
+describe('DELETE /companies/id', ()=>{
+    test('testing a company data', async()=>{
+        const result = await supertest(app).get('/companies/ibm')
+        expect(result.statusCode).toBe(200)
+        expect(result.body).toEqual({testCompany)
+    })
+    test('testing 404', async()=>{
+        const result = await supertest(app).get('/wrong')
+        expect(result.statusCode).toBe(404)
+    })
+})
+
+
+
