@@ -7,6 +7,7 @@ const db = require('./db')
 let testCompanies;
 let testCompany;
 let testInvoice;
+let testInvoiceData;
 
 beforeEach( async()=> {
     const comp_result = await db.query(`INSERT INTO companies (code, name, description) 
@@ -31,16 +32,18 @@ beforeEach( async()=> {
         "add_date": invoice_data.add_date,
         "paid_date": invoice_data.paid_date,
         "company": {
-            "code": invoice_data.code,
-            "name": invoice_data.name,
-            "description": invoice_data.description
+            "code": data.code,
+            "name": data.name,
+            "description": data.description
         }
     }
     testInvoice = {"invoice": invoice}
+    testInvoiceData = invoice_data
 });
 
 afterEach(async ()=>{
     await db.query(`DELETE FROM companies`)
+    await db.query(`DELETE FROM invoices`)
 });
 
 afterAll(async()=>{
@@ -75,7 +78,7 @@ describe('GET /companies/id', ()=>{
 
 
 describe('POST /companies', ()=>{
-    test('testing a company data', async()=>{
+    test('creating a company data', async()=>{
         const result = await supertest(app).get('/companies')
         expect(result.statusCode).toBe(200)
         expect(result.body).toEqual(testCompanies)
@@ -88,7 +91,7 @@ describe('POST /companies', ()=>{
 
 
 describe('PATCH /companies/id', ()=>{
-    test('testing a company data', async()=>{
+    test('updating a company data', async()=>{
         const result = await supertest(app).get('/companies/ibm')
         expect(result.statusCode).toBe(200)
         expect(JSON.stringify(result.body)).toEqual(JSON.stringify(testCompany))
@@ -100,7 +103,7 @@ describe('PATCH /companies/id', ()=>{
 })
 
 describe('DELETE /companies/id', ()=>{
-    test('testing a company data', async()=>{
+    test('deleting a company data', async()=>{
         const result = await supertest(app).get('/companies/ibm')
         expect(result.statusCode).toBe(200)
         expect(JSON.stringify(result.body)).toEqual(JSON.stringify(testCompany))
@@ -119,15 +122,28 @@ describe('DELETE /companies/id', ()=>{
 
 describe('GET /invoices/id', ()=>{
     test('testing an invoice data', async()=>{
-        const result = await supertest(app).get('/invoices/1')
+        const result = await supertest(app).get(`/invoices/${testInvoice.invoice.id}`)
         expect(result.statusCode).toBe(200)
-        console.log(result.status)
-        console.log(result.body)
-        // console.log(testCompany)
-        expect(result.body).toEqual(testInvoice)
+        expect(JSON.stringify(result.body)).toEqual(JSON.stringify(testInvoice))
     })
     test('testing 404', async()=>{
-        const result = await supertest(app).get('/invoices/wrong')
+        const result = await supertest(app).get('/invoices/0')
         expect(result.statusCode).toBe(404)
     })
 })
+
+describe('POST /invoices', ()=>{
+    test('creating invoice data', async()=>{
+        const result = await supertest(app).post('/invoices').send({comp_code:'apple', amt: 1000, paid:true, add_date:'2022-05-28', paid_date:'2022-05-28'})
+        expect(result.statusCode).toBe(201)
+        // console.log(result.status)
+        // console.log(result.body)
+        // console.log(testInvoiceData)
+        expect(result.body).toEqual({invoice: testInvoiceData})
+    })
+    test('testing 404', async()=>{
+        const result = await supertest(app).post('/wrong')
+        expect(result.statusCode).toBe(404)
+    })
+})
+
